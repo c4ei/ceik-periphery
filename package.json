@@ -1,14 +1,14 @@
 {
-  "name": "definixswap-peripheral",
+  "name": "deficeikswap-peripheral",
   "version": "1.1.0-beta.0",
-  "description": "🎚 Peripheral smart contracts for interacting with definix",
+  "description": "🎚 Peripheral smart contracts for interacting with deficeik",
   "engines": {
     "node": ">=10"
   },
-  "homepage": "https://definixswap.finance",
+  "homepage": "https://deficeikswap.finance",
   "repository": {
     "type": "git",
-    "url": "https://github.com/definixswap/definix-swap-periphery.git"
+    "url": "https://github.com/deficeikswap/deficeik-swap-periphery.git"
   },
   "files": [
     "build",

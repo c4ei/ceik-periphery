@@ -1,19 +1,19 @@
 pragma solidity =0.6.6;
 
-import './interfaces/IDefinixFactory.sol';
+import './interfaces/IDeficeikFactory.sol';
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
-import './libraries/DefinixLibrary.sol';
-import './interfaces/IDefinixRouter01.sol';
+import './libraries/DeficeikLibrary.sol';
+import './interfaces/IDeficeikRouter01.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
-contract DefinixRouter01 is IDefinixRouter01 {
+contract DeficeikRouter01 is IDeficeikRouter01 {
     address public immutable override factory;
     address public immutable override WETH;
 
     modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'DefinixRouter: EXPIRED');
+        require(deadline >= block.timestamp, 'DeficeikRouter: EXPIRED');
         _;
     }
 
@@ -36,21 +36,21 @@ contract DefinixRouter01 is IDefinixRouter01 {
         uint amountBMin
     ) private returns (uint amountA, uint amountB) {
         // create the pair if it doesn't exist yet
-        if (IDefinixFactory(factory).getPair(tokenA, tokenB) == address(0)) {
-            IDefinixFactory(factory).createPair(tokenA, tokenB);
+        if (IDeficeikFactory(factory).getPair(tokenA, tokenB) == address(0)) {
+            IDeficeikFactory(factory).createPair(tokenA, tokenB);
         }
-        (uint reserveA, uint reserveB) = DefinixLibrary.getReserves(factory, tokenA, tokenB);
+        (uint reserveA, uint reserveB) = DeficeikLibrary.getReserves(factory, tokenA, tokenB);
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
-            uint amountBOptimal = DefinixLibrary.quote(amountADesired, reserveA, reserveB);
+            uint amountBOptimal = DeficeikLibrary.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, 'DefinixRouter: INSUFFICIENT_B_AMOUNT');
+                require(amountBOptimal >= amountBMin, 'DeficeikRouter: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-                uint amountAOptimal = DefinixLibrary.quote(amountBDesired, reserveB, reserveA);
+                uint amountAOptimal = DeficeikLibrary.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, 'DefinixRouter: INSUFFICIENT_A_AMOUNT');
+                require(amountAOptimal >= amountAMin, 'DeficeikRouter: INSUFFICIENT_A_AMOUNT');
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
@@ -66,10 +66,10 @@ contract DefinixRouter01 is IDefinixRouter01 {
         uint deadline
     ) external override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        address pair = DefinixLibrary.pairFor(factory, tokenA, tokenB);
+        address pair = DeficeikLibrary.pairFor(factory, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
-        liquidity = IDefinixPair(pair).mint(to);
+        liquidity = IDeficeikPair(pair).mint(to);
     }
     function addLiquidityETH(
         address token,
@@ -87,11 +87,11 @@ contract DefinixRouter01 is IDefinixRouter01 {
             amountTokenMin,
             amountETHMin
         );
-        address pair = DefinixLibrary.pairFor(factory, token, WETH);
+        address pair = DeficeikLibrary.pairFor(factory, token, WETH);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
         IWETH(WETH).deposit{value: amountETH}();
         assert(IWETH(WETH).transfer(pair, amountETH));
-        liquidity = IDefinixPair(pair).mint(to);
+        liquidity = IDeficeikPair(pair).mint(to);
         if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH); // refund dust eth, if any
     }
 
@@ -105,13 +105,13 @@ contract DefinixRouter01 is IDefinixRouter01 {
         address to,
         uint deadline
     ) public override ensure(deadline) returns (uint amountA, uint amountB) {
-        address pair = DefinixLibrary.pairFor(factory, tokenA, tokenB);
-        IDefinixPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
-        (uint amount0, uint amount1) = IDefinixPair(pair).burn(to);
-        (address token0,) = DefinixLibrary.sortTokens(tokenA, tokenB);
+        address pair = DeficeikLibrary.pairFor(factory, tokenA, tokenB);
+        IDeficeikPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
+        (uint amount0, uint amount1) = IDeficeikPair(pair).burn(to);
+        (address token0,) = DeficeikLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, 'DefinixRouter: INSUFFICIENT_A_AMOUNT');
-        require(amountB >= amountBMin, 'DefinixRouter: INSUFFICIENT_B_AMOUNT');
+        require(amountA >= amountAMin, 'DeficeikRouter: INSUFFICIENT_A_AMOUNT');
+        require(amountB >= amountBMin, 'DeficeikRouter: INSUFFICIENT_B_AMOUNT');
     }
     function removeLiquidityETH(
         address token,
@@ -144,9 +144,9 @@ contract DefinixRouter01 is IDefinixRouter01 {
         uint deadline,
         bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external override returns (uint amountA, uint amountB) {
-        address pair = DefinixLibrary.pairFor(factory, tokenA, tokenB);
+        address pair = DeficeikLibrary.pairFor(factory, tokenA, tokenB);
         uint value = approveMax ? uint(-1) : liquidity;
-        IDefinixPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IDeficeikPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountA, amountB) = removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
     }
     function removeLiquidityETHWithPermit(
@@ -158,9 +158,9 @@ contract DefinixRouter01 is IDefinixRouter01 {
         uint deadline,
         bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external override returns (uint amountToken, uint amountETH) {
-        address pair = DefinixLibrary.pairFor(factory, token, WETH);
+        address pair = DeficeikLibrary.pairFor(factory, token, WETH);
         uint value = approveMax ? uint(-1) : liquidity;
-        IDefinixPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IDeficeikPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 
@@ -169,11 +169,11 @@ contract DefinixRouter01 is IDefinixRouter01 {
     function _swap(uint[] memory amounts, address[] memory path, address _to) private {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = DefinixLibrary.sortTokens(input, output);
+            (address token0,) = DeficeikLibrary.sortTokens(input, output);
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
-            address to = i < path.length - 2 ? DefinixLibrary.pairFor(factory, output, path[i + 2]) : _to;
-            IDefinixPair(DefinixLibrary.pairFor(factory, input, output)).swap(amount0Out, amount1Out, to, new bytes(0));
+            address to = i < path.length - 2 ? DeficeikLibrary.pairFor(factory, output, path[i + 2]) : _to;
+            IDeficeikPair(DeficeikLibrary.pairFor(factory, input, output)).swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
     function swapExactTokensForTokens(
@@ -183,9 +183,9 @@ contract DefinixRouter01 is IDefinixRouter01 {
         address to,
         uint deadline
     ) external override ensure(deadline) returns (uint[] memory amounts) {
-        amounts = DefinixLibrary.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'DefinixRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(path[0], msg.sender, DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        amounts = DeficeikLibrary.getAmountsOut(factory, amountIn, path);
+        require(amounts[amounts.length - 1] >= amountOutMin, 'DeficeikRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(path[0], msg.sender, DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, to);
     }
     function swapTokensForExactTokens(
@@ -195,9 +195,9 @@ contract DefinixRouter01 is IDefinixRouter01 {
         address to,
         uint deadline
     ) external override ensure(deadline) returns (uint[] memory amounts) {
-        amounts = DefinixLibrary.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'DefinixRouter: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(path[0], msg.sender, DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        amounts = DeficeikLibrary.getAmountsIn(factory, amountOut, path);
+        require(amounts[0] <= amountInMax, 'DeficeikRouter: EXCESSIVE_INPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(path[0], msg.sender, DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, to);
     }
     function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
@@ -207,11 +207,11 @@ contract DefinixRouter01 is IDefinixRouter01 {
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[0] == WETH, 'DefinixRouter: INVALID_PATH');
-        amounts = DefinixLibrary.getAmountsOut(factory, msg.value, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'DefinixRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(path[0] == WETH, 'DeficeikRouter: INVALID_PATH');
+        amounts = DeficeikLibrary.getAmountsOut(factory, msg.value, path);
+        require(amounts[amounts.length - 1] >= amountOutMin, 'DeficeikRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(IWETH(WETH).transfer(DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
+        assert(IWETH(WETH).transfer(DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
     function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
@@ -220,10 +220,10 @@ contract DefinixRouter01 is IDefinixRouter01 {
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[path.length - 1] == WETH, 'DefinixRouter: INVALID_PATH');
-        amounts = DefinixLibrary.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'DefinixRouter: EXCESSIVE_INPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(path[0], msg.sender, DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        require(path[path.length - 1] == WETH, 'DeficeikRouter: INVALID_PATH');
+        amounts = DeficeikLibrary.getAmountsIn(factory, amountOut, path);
+        require(amounts[0] <= amountInMax, 'DeficeikRouter: EXCESSIVE_INPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(path[0], msg.sender, DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
@@ -234,10 +234,10 @@ contract DefinixRouter01 is IDefinixRouter01 {
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[path.length - 1] == WETH, 'DefinixRouter: INVALID_PATH');
-        amounts = DefinixLibrary.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'DefinixRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        TransferHelper.safeTransferFrom(path[0], msg.sender, DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
+        require(path[path.length - 1] == WETH, 'DeficeikRouter: INVALID_PATH');
+        amounts = DeficeikLibrary.getAmountsOut(factory, amountIn, path);
+        require(amounts[amounts.length - 1] >= amountOutMin, 'DeficeikRouter: INSUFFICIENT_OUTPUT_AMOUNT');
+        TransferHelper.safeTransferFrom(path[0], msg.sender, DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]);
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
@@ -249,32 +249,32 @@ contract DefinixRouter01 is IDefinixRouter01 {
         ensure(deadline)
         returns (uint[] memory amounts)
     {
-        require(path[0] == WETH, 'DefinixRouter: INVALID_PATH');
-        amounts = DefinixLibrary.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= msg.value, 'DefinixRouter: EXCESSIVE_INPUT_AMOUNT');
+        require(path[0] == WETH, 'DeficeikRouter: INVALID_PATH');
+        amounts = DeficeikLibrary.getAmountsIn(factory, amountOut, path);
+        require(amounts[0] <= msg.value, 'DeficeikRouter: EXCESSIVE_INPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(IWETH(WETH).transfer(DefinixLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
+        assert(IWETH(WETH).transfer(DeficeikLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
         if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]); // refund dust eth, if any
     }
 
     function quote(uint amountA, uint reserveA, uint reserveB) public pure override returns (uint amountB) {
-        return DefinixLibrary.quote(amountA, reserveA, reserveB);
+        return DeficeikLibrary.quote(amountA, reserveA, reserveB);
     }
 
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) public pure override returns (uint amountOut) {
-        return DefinixLibrary.getAmountOut(amountIn, reserveIn, reserveOut);
+        return DeficeikLibrary.getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) public pure override returns (uint amountIn) {
-        return DefinixLibrary.getAmountOut(amountOut, reserveIn, reserveOut);
+        return DeficeikLibrary.getAmountOut(amountOut, reserveIn, reserveOut);
     }
 
     function getAmountsOut(uint amountIn, address[] memory path) public view override returns (uint[] memory amounts) {
-        return DefinixLibrary.getAmountsOut(factory, amountIn, path);
+        return DeficeikLibrary.getAmountsOut(factory, amountIn, path);
     }
 
     function getAmountsIn(uint amountOut, address[] memory path) public view override returns (uint[] memory amounts) {
-        return DefinixLibrary.getAmountsIn(factory, amountOut, path);
+        return DeficeikLibrary.getAmountsIn(factory, amountOut, path);
     }
 }
